@@ -61,4 +61,11 @@ public class BillController {
         log.info("Delete Bill: {}", billId);
         return billService.deleteBill(billId);
     }
+
+    @PostMapping("/{billId}")
+    @Operation(summary = "Calculate Discount")
+    public double calculate(@PathVariable int billId) {
+        log.info("Calculate Discount for Bill Id: {}", billId);
+        return billService.calculateDiscount(billId);
+    }
 }

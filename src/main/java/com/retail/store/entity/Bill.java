@@ -35,11 +35,11 @@ public class Bill {
 
     private double billAmountDiscount;
 
-    private double totalDiscount;
+    private double netDiscount;
 
     private double dueAmount;
 
-    private double finalBillAmount;
+    private double newPayableAmount;
 
     private Date billDate;
 

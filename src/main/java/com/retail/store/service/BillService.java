@@ -73,7 +73,6 @@ public class BillService {
             bill.getLineItems().add(lineItem);
             bill.setBillAmount(bill.getBillAmount() + lineItem.getLinePrice());
         }
-        calculateDiscount(bill, customer);
     }
 
     public Bill addItemInExistingBill(int billId, BillItem billItem) {
@@ -100,27 +99,6 @@ public class BillService {
         bill = billRepository.save(bill);
         log.info("Paid bill: {}", bill);
         return bill;
-    }
-
-    private void calculateDiscount(Bill bill, Customer customer) {
-        log.info("Discount calculation starts for billId: {}", bill.getBillId());
-        double discountPercentage = getCustomerTypeDiscountPercentage(customer);
-
-        double totalDiscount = calculateItemTypeDiscount(bill, discountPercentage);
-
-        double discount = 0.0;
-        if (bill.getBillAmount() - totalDiscount >= 100.00) {
-            log.info("Bill amount is more than 100.00, eligible for Bill Amount Discount");
-            int discountMultiple = (int) ((bill.getBillAmount() - totalDiscount) / 100.00);
-            discount = discountMultiple * 5.0;
-            totalDiscount += discount;
-        }
-
-        bill.setBillAmountDiscount(discount);
-        bill.setTotalDiscount(Double.parseDouble(String.format("%.2f", totalDiscount)));
-        bill.setFinalBillAmount(bill.getBillAmount() - bill.getTotalDiscount());
-        bill.setDueAmount(bill.getFinalBillAmount());
-        log.info("Discount calculation ends for billId: {}", bill.getBillId());
     }
 
     private double calculateItemTypeDiscount(Bill bill, double discountPercentage) {
@@ -169,7 +147,6 @@ public class BillService {
             }
         }
         bill.getLineItems().removeIf(lineItem -> lineItem.getItemId() == itemId);
-        calculateDiscount(bill, customerService.getCustomerById(bill.getCustomerId()));
 
         bill = billRepository.save(bill);
         log.info("Removed item from bill: {}", bill);
@@ -185,5 +162,30 @@ public class BillService {
         billRepository.delete(bill);
         log.info("Deleted bill: {}", bill);
         return "Bill deleted with id: " + billId;
+    }
+
+    public double calculateDiscount(int billId) {
+        log.info("Discount calculation starts for billId: {}", billId);
+        Bill bill = getBillById(billId);
+        Customer customer = customerService.getCustomerById(bill.getCustomerId());
+
+        double discountPercentage = getCustomerTypeDiscountPercentage(customer);
+        double totalDiscount = calculateItemTypeDiscount(bill, discountPercentage);
+
+        double discount = 0.0;
+        if (bill.getBillAmount() - totalDiscount >= 100.00) {
+            log.info("Bill amount is more than 100.00, eligible for Bill Amount Discount");
+            int discountMultiple = (int) ((bill.getBillAmount() - totalDiscount) / 100.00);
+            discount = discountMultiple * 5.0;
+            totalDiscount += discount;
+        }
+
+        bill.setBillAmountDiscount(discount);
+        bill.setNetDiscount(Double.parseDouble(String.format("%.2f", totalDiscount)));
+        bill.setNewPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
+        bill.setDueAmount(bill.getNewPayableAmount());
+        billRepository.save(bill);
+        log.info("Net discount: {} calculated for billId: {}", bill.getNetDiscount(), bill.getBillId());
+        return bill.getNetDiscount();
     }
 }
