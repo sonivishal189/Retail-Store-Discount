@@ -31,7 +31,7 @@ public class CustomerService {
             throw new CustomerException("Customer already exists with phone number: " + customer.getPhoneNumber());
         }
         customer.setCustomerId(customer.getPhoneNumber());
-        if(null == customer.getJoiningDate()) {
+        if (null == customer.getJoiningDate()) {
             customer.setJoiningDate(LocalDate.now());
         }
         customer = customerRepository.save(customer);

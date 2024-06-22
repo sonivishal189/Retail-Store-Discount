@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -59,26 +58,29 @@ public class BillService {
         newBill.setLineItems(new ArrayList<>());
         newBill.setPaymentMode(null);
         newBill.setBillDate(new Date());
-        for (BillItem billItem : billItems) {
-            addItem(billItem.getItemId(), billItem.getQuantity(), newBill, customer);
-        }
+        addItem(billItems, newBill, customer);
         int billId = billRepository.save(newBill).getBillId();
         log.info("Created bill with id: {}", billId);
         return newBill;
     }
 
-    private void addItem(int itemId, int quantity, Bill bill, Customer customer) {
-        Item item = itemService.getItemById(itemId);
-        bill.getLineItems().add(new LineItem(itemId, item.getName(), item.getPrice(), quantity, bill));
-        bill.setBillAmount(bill.getBillAmount() + (item.getPrice() * quantity));
+    private void addItem(List<BillItem> billItems, Bill bill, Customer customer) {
+        for (BillItem billItem : billItems) {
+            int itemId = billItem.getItemId();
+            int quantity = billItem.getQuantity();
+            Item item = itemService.getItemById(itemId);
+            LineItem lineItem = new LineItem(itemId, item.getName(), item.getPrice(), quantity, bill);
+            bill.getLineItems().add(lineItem);
+            bill.setBillAmount(bill.getBillAmount() + lineItem.getLinePrice());
+        }
         calculateDiscount(bill, customer);
     }
 
-    public Bill addItemToBill(int billId, BillItem billItem) {
+    public Bill addItemInExistingBill(int billId, BillItem billItem) {
         Bill bill = getBillById(billId);
         throwErrorIfPaymentCompleted(bill);
         Customer customer = customerService.getCustomerById(bill.getCustomerId());
-        addItem(billItem.getItemId(), billItem.getQuantity(), bill, customer);
+        addItem(List.of(billItem), bill, customer);
         bill = billRepository.save(bill);
         log.info("Added item to bill: {}", bill);
         return bill;
@@ -86,8 +88,8 @@ public class BillService {
 
     private static void throwErrorIfPaymentCompleted(Bill bill) {
         if (null != bill.getPaymentMode()) {
-            log.error("Bill already paid: {}", bill.getBillId());
-            throw new BillException("Bill already paid: " + bill.getBillId());
+            log.error("Bill {} already paid, please create a new bill", bill.getBillId());
+            throw new BillException("Bill " + bill.getBillId() + " already paid, please create a new bill");
         }
     }
 
@@ -102,31 +104,9 @@ public class BillService {
 
     private void calculateDiscount(Bill bill, Customer customer) {
         log.info("Discount calculation starts for billId: {}", bill.getBillId());
-        double discountPercentage = 0.0;
-        if (customer.getCustomerType() == CustomerType.EMPLOYEE) {
-            discountPercentage = 0.30;
-        } else if (customer.getCustomerType() == CustomerType.AFFILIATE) {
-            discountPercentage = 0.10;
-        } else if (customer.getCustomerType() == CustomerType.REGULAR && customer.getJoiningDate().isBefore(LocalDate.now().minusYears(2))) {
-            discountPercentage += 0.05;
-            log.info("Customer joined before 2 years");
-        }
-        log.info("Customer is of type {} and eligible for {}% discount", customer.getCustomerType(), discountPercentage * 100);
+        double discountPercentage = getCustomerTypeDiscountPercentage(customer);
 
-        double totalDiscount = 0.0;
-
-        for (LineItem lineItem : bill.getLineItems()) {
-            double discount = 0.0;
-            ItemType itemType = itemService.getItemTypeById(lineItem.getItemId());
-            if (itemType != ItemType.GROCERY) {
-                discount = lineItem.getLinePrice() * discountPercentage;
-                totalDiscount += discount;
-            }
-            lineItem.setLineDiscount(discount);
-            lineItem.setFinalLinePrice(lineItem.getLinePrice() - discount);
-        }
-
-        bill.setCustomerTypeDiscount(totalDiscount);
+        double totalDiscount = calculateItemTypeDiscount(bill, discountPercentage);
 
         double discount = 0.0;
         if (bill.getBillAmount() - totalDiscount >= 100.00) {
@@ -143,12 +123,50 @@ public class BillService {
         log.info("Discount calculation ends for billId: {}", bill.getBillId());
     }
 
-    public Bill removeItemFromBill(int billId, int itemId) {
+    private double calculateItemTypeDiscount(Bill bill, double discountPercentage) {
+        double totalDiscount = 0.0;
+
+        for (LineItem lineItem : bill.getLineItems()) {
+            double discount = 0.0;
+            ItemType itemType = itemService.getItemTypeById(lineItem.getItemId());
+            if (itemType != ItemType.GROCERY) {
+                discount = lineItem.getLinePrice() * discountPercentage;
+                totalDiscount += discount;
+            }
+            lineItem.setLineDiscount(discount);
+            lineItem.setFinalLinePrice(lineItem.getLinePrice() - discount);
+        }
+
+        bill.setCustomerTypeDiscount(totalDiscount);
+        log.info("Total Item Type discount: {}", totalDiscount);
+        return totalDiscount;
+    }
+
+    private static double getCustomerTypeDiscountPercentage(Customer customer) {
+        double discountPercentage = 0.0;
+        if (customer.getCustomerType() == CustomerType.EMPLOYEE) {
+            discountPercentage = 0.30;
+        } else if (customer.getCustomerType() == CustomerType.AFFILIATE) {
+            discountPercentage = 0.10;
+        } else if (customer.getCustomerType() == CustomerType.REGULAR && customer.getJoiningDate().isBefore(LocalDate.now().minusYears(2))) {
+            discountPercentage += 0.05;
+            log.info("Customer joined before 2 years");
+        }
+        log.info("Customer is of type {} and eligible for {}% discount", customer.getCustomerType(), discountPercentage * 100);
+        return discountPercentage;
+    }
+
+    public Bill removeItemFromExistingBill(int billId, int itemId) {
         Bill bill = getBillById(billId);
         throwErrorIfPaymentCompleted(bill);
         if (bill.getLineItems().stream().noneMatch(lineItem -> lineItem.getItemId() == itemId)) {
             log.error("Item not found in bill: {}", billId);
             throw new BillException("Item not found in bill: " + billId);
+        }
+        for (LineItem lineItem : bill.getLineItems()) {
+            if (lineItem.getItemId() == itemId) {
+                bill.setBillAmount(bill.getBillAmount() - lineItem.getLinePrice());
+            }
         }
         bill.getLineItems().removeIf(lineItem -> lineItem.getItemId() == itemId);
         calculateDiscount(bill, customerService.getCustomerById(bill.getCustomerId()));
@@ -160,7 +178,7 @@ public class BillService {
 
     public String deleteBill(int billId) {
         Bill bill = getBillById(billId);
-        if(null != bill.getPaymentMode()) {
+        if (null != bill.getPaymentMode()) {
             log.error("Bill: {} already paid cannot be delete", billId);
             throw new BillException("Bill " + billId + " already paid cannot be delete");
         }

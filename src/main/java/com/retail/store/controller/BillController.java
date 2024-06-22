@@ -29,9 +29,9 @@ public class BillController {
 
     @PatchMapping("/addItem/{billId}")
     @Operation(summary = "Add Item in existing bill")
-    public Bill addItemToBill(@PathVariable int billId, @RequestBody BillItem billItem) {
+    public Bill addItemInExistingBill(@PathVariable int billId, @RequestBody BillItem billItem) {
         log.info("Add Item: {} to Bill: {}", billItem, billId);
-        return billService.addItemToBill(billId, billItem);
+        return billService.addItemInExistingBill(billId, billItem);
     }
 
     @GetMapping("/{id}")
@@ -50,9 +50,9 @@ public class BillController {
 
     @PatchMapping("/removeItem/{billId}/{itemId}")
     @Operation(summary = "Remove Item from Bill")
-    public Bill removeItemFromBill(@PathVariable int billId, @PathVariable int itemId) {
+    public Bill removeItemFromExistingBill(@PathVariable int billId, @PathVariable int itemId) {
         log.info("Remove Item: {} from Bill: {}", itemId, billId);
-        return billService.removeItemFromBill(billId, itemId);
+        return billService.removeItemFromExistingBill(billId, itemId);
     }
 
     @DeleteMapping("/{billId}")
