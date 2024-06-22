@@ -2,10 +2,10 @@ package com.retail.store.entity;
 
 import com.retail.store.util.PaymentMode;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class Bill {
 
     private double dueAmount;
 
-    private double newPayableAmount;
+    private double netPayableAmount;
 
     private Date billDate;
 

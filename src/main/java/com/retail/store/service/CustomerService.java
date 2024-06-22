@@ -4,11 +4,11 @@ import com.retail.store.dao.CustomerRepository;
 import com.retail.store.entity.Customer;
 import com.retail.store.exception.CustomerException;
 import com.retail.store.util.CustomerType;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.List;
 

@@ -73,6 +73,7 @@ public class BillService {
             bill.getLineItems().add(lineItem);
             bill.setBillAmount(bill.getBillAmount() + lineItem.getLinePrice());
         }
+        bill.setNetPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
     }
 
     public Bill addItemInExistingBill(int billId, BillItem billItem) {
@@ -182,8 +183,8 @@ public class BillService {
 
         bill.setBillAmountDiscount(discount);
         bill.setNetDiscount(Double.parseDouble(String.format("%.2f", totalDiscount)));
-        bill.setNewPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
-        bill.setDueAmount(bill.getNewPayableAmount());
+        bill.setNetPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
+        bill.setDueAmount(bill.getNetPayableAmount());
         billRepository.save(bill);
         log.info("Net discount: {} calculated for billId: {}", bill.getNetDiscount(), bill.getBillId());
         return bill.getNetDiscount();

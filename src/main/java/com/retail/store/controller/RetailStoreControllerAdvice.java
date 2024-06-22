@@ -48,10 +48,11 @@ public class RetailStoreControllerAdvice {
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     public ErrorResponse methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException methodArgumentNotValidException) {
 
-        List<String> detailMessageArguments = Arrays.stream(Objects.requireNonNull(methodArgumentNotValidException.getDetailMessageArguments()))
-                .map(String::valueOf)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-        return new ErrorResponse(null, detailMessageArguments.toString());
+//        List<String> detailMessageArguments = Arrays.stream(Objects.requireNonNull(methodArgumentNotValidException.getDetailMessageArguments()))
+//                .map(String::valueOf)
+//                .filter(s -> !s.isEmpty())
+//                .collect(Collectors.toList());
+//        return new ErrorResponse(null, detailMessageArguments.toString());
+        return new ErrorResponse(null, methodArgumentNotValidException.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
