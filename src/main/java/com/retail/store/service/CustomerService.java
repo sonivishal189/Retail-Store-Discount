@@ -83,12 +83,12 @@ public class CustomerService {
     @PostConstruct
     private void init() {
         List<Customer> customerList = List.of(
-                new Customer("9876510000", "John", CustomerType.REGULAR, LocalDate.now(), "john@email.com"),
-                new Customer("9876510001", "Jenny", CustomerType.REGULAR, LocalDate.of(2013, 10, 9), "jenny@email.com"),
-                new Customer("9876520000", "Tim", CustomerType.AFFILIATE, LocalDate.now(), "tim@email.com"),
-                new Customer("9876520001", "Tom", CustomerType.AFFILIATE, LocalDate.of(2014, 11, 7), "tom@email.com"),
-                new Customer("9876530000", "Alex", CustomerType.EMPLOYEE, LocalDate.now(), "alex@email.com"),
-                new Customer("9876540001", "Alina", CustomerType.EMPLOYEE, LocalDate.of(2015, 3, 3), "alina@email.com")
+                new Customer("9999991001", "John", CustomerType.REGULAR, LocalDate.now(), "john@email.com"),
+                new Customer("9999991002", "Jenny", CustomerType.REGULAR, LocalDate.of(2013, 10, 9), "jenny@email.com"),
+                new Customer("9999992001", "Tim", CustomerType.AFFILIATE, LocalDate.now(), "tim@email.com"),
+                new Customer("9999992002", "Tom", CustomerType.AFFILIATE, LocalDate.of(2014, 11, 7), "tom@email.com"),
+                new Customer("9999993001", "Alex", CustomerType.EMPLOYEE, LocalDate.now(), "alex@email.com"),
+                new Customer("9999993002", "Alina", CustomerType.EMPLOYEE, LocalDate.of(2015, 3, 3), "alina@email.com")
         );
 
         for (Customer customer : customerList) {

@@ -31,7 +31,11 @@ public class Bill {
 
     private double billAmount;
 
-    private double discount;
+    private double customerTypeDiscount;
+
+    private double billAmountDiscount;
+
+    private double totalDiscount;
 
     private double dueAmount;
 

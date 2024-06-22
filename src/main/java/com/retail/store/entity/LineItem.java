@@ -19,7 +19,9 @@ public class LineItem {
     private int itemId;
     private String itemName;
     private double pricePerUnit;
-    private double price;
+    private double linePrice;
+    private double lineDiscount;
+    private double finalLinePrice;
     private int quantity;
 
     @ManyToOne
@@ -31,7 +33,7 @@ public class LineItem {
         this.itemId = itemId;
         this.itemName = itemName;
         this.pricePerUnit = pricePerUnit;
-        this.price = pricePerUnit * quantity;
+        this.linePrice = pricePerUnit * quantity;
         this.quantity = quantity;
         this.bill = bill;
     }
@@ -42,7 +44,7 @@ public class LineItem {
                 "itemId=" + itemId +
                 ", itemName='" + itemName + '\'' +
                 ", pricePerUnit=" + pricePerUnit +
-                ", price=" + price +
+                ", linePrice=" + linePrice +
                 ", quantity=" + quantity +
                 '}';
     }

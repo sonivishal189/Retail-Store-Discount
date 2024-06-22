@@ -46,11 +46,11 @@ public class BillService {
     public Bill createBill(String customerId, List<BillItem> billItems) {
         Bill newBill = new Bill();
 
-        Optional<Bill> existingNotPaidBill = billRepository.findByCustomerIdAndPaymentModeIsNull(customerId);
-        if (existingNotPaidBill.isPresent()) {
-            log.error("Bill already exists with billId: {}, for customerId: {}", existingNotPaidBill.get().getBillId(), customerId);
-            throw new BillException("Bill already exists with id: " + existingNotPaidBill.get().getBillId() + " for customerId: " + customerId);
-        }
+//        Optional<Bill> existingNotPaidBill = billRepository.findByCustomerIdAndPaymentModeIsNull(customerId);
+//        if (existingNotPaidBill.isPresent()) {
+//            log.error("Bill already exists with billId: {}, for customerId: {}", existingNotPaidBill.get().getBillId(), customerId);
+//            throw new BillException("Bill already exists with id: " + existingNotPaidBill.get().getBillId() + " for customerId: " + customerId);
+//        }
 
         Customer customer = customerService.getCustomerById(customerId);
         newBill.setCustomerId(customer.getCustomerId());
@@ -101,36 +101,46 @@ public class BillService {
     }
 
     private void calculateDiscount(Bill bill, Customer customer) {
+        log.info("Discount calculation starts for billId: {}", bill.getBillId());
         double discountPercentage = 0.0;
         if (customer.getCustomerType() == CustomerType.EMPLOYEE) {
             discountPercentage = 0.30;
         } else if (customer.getCustomerType() == CustomerType.AFFILIATE) {
             discountPercentage = 0.10;
-        }
-
-        if (customer.getJoiningDate().isBefore(LocalDate.now().minusYears(2))) {
+        } else if (customer.getCustomerType() == CustomerType.REGULAR && customer.getJoiningDate().isBefore(LocalDate.now().minusYears(2))) {
             discountPercentage += 0.05;
+            log.info("Customer joined before 2 years");
         }
+        log.info("Customer is of type {} and eligible for {}% discount", customer.getCustomerType(), discountPercentage * 100);
 
-        double discount = 0.0;
         double totalDiscount = 0.0;
 
         for (LineItem lineItem : bill.getLineItems()) {
+            double discount = 0.0;
             ItemType itemType = itemService.getItemTypeById(lineItem.getItemId());
             if (itemType != ItemType.GROCERY) {
-                discount = lineItem.getPrice() * discountPercentage;
+                discount = lineItem.getLinePrice() * discountPercentage;
                 totalDiscount += discount;
             }
+            lineItem.setLineDiscount(discount);
+            lineItem.setFinalLinePrice(lineItem.getLinePrice() - discount);
         }
 
-        if (bill.getBillAmount() - totalDiscount >= 100.0) {
-            discount = ((bill.getBillAmount() - totalDiscount) / 100) * 5;
+        bill.setCustomerTypeDiscount(totalDiscount);
+
+        double discount = 0.0;
+        if (bill.getBillAmount() - totalDiscount >= 100.00) {
+            log.info("Bill amount is more than 100.00, eligible for Bill Amount Discount");
+            int discountMultiple = (int) ((bill.getBillAmount() - totalDiscount) / 100.00);
+            discount = discountMultiple * 5.0;
             totalDiscount += discount;
         }
 
-        bill.setDiscount(totalDiscount);
-        bill.setFinalBillAmount(bill.getBillAmount() - bill.getDiscount());
+        bill.setBillAmountDiscount(discount);
+        bill.setTotalDiscount(Double.parseDouble(String.format("%.2f", totalDiscount)));
+        bill.setFinalBillAmount(bill.getBillAmount() - bill.getTotalDiscount());
         bill.setDueAmount(bill.getFinalBillAmount());
+        log.info("Discount calculation ends for billId: {}", bill.getBillId());
     }
 
     public Bill removeItemFromBill(int billId, int itemId) {
