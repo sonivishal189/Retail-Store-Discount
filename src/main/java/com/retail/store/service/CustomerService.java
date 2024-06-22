@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -26,8 +26,14 @@ public class CustomerService {
     }
 
     public Customer createCustomer(Customer customer) {
-        customer.setId(customer.getPhoneNumber());
-        customer.setJoiningDate(new Date());
+        if (customerRepository.findById(customer.getPhoneNumber()).isPresent()) {
+            log.error("Customer already exists with phone number: {}", customer.getPhoneNumber());
+            throw new CustomerException("Customer already exists with phone number: " + customer.getPhoneNumber());
+        }
+        customer.setCustomerId(customer.getPhoneNumber());
+        if(null == customer.getJoiningDate()) {
+            customer.setJoiningDate(LocalDate.now());
+        }
         customer = customerRepository.save(customer);
         log.info("Created customer: {}", customer);
         return customer;
@@ -43,15 +49,46 @@ public class CustomerService {
         throw new CustomerException("Customer not found with id: " + id);
     }
 
+    public Customer updateCustomer(String id, Customer customer) {
+        Customer customerInDb = getCustomerById(id);
+        if (customer.getName() != null && !customer.getName().isEmpty()) {
+            customerInDb.setName(customer.getName());
+        }
+        if (customer.getCustomerType() != null) {
+            customerInDb.setCustomerType(customer.getCustomerType());
+        }
+        if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
+            customerInDb.setEmail(customer.getEmail());
+        }
+        if (null != customerInDb.getPhoneNumber() && !customerInDb.getPhoneNumber().equals(customer.getPhoneNumber())) {
+            log.error("Phone number cannot be changed");
+            throw new CustomerException("Phone number cannot be changed");
+        }
+        if (null != customer.getJoiningDate() && customerInDb.getJoiningDate() != customer.getJoiningDate()) {
+            log.error("Joining date cannot be changed");
+            throw new CustomerException("Joining date cannot be changed");
+        }
+        customerInDb = customerRepository.save(customerInDb);
+        log.info("Updated customer: {}", customerInDb);
+        return customerInDb;
+    }
+
+    public String deleteCustomer(String id) {
+        getCustomerById(id);
+        customerRepository.deleteById(id);
+        log.info("Deleted customer with id: {}", id);
+        return "Deleted customer with id: " + id;
+    }
+
     @PostConstruct
     private void init() {
         List<Customer> customerList = List.of(
-                new Customer("1", "9876510000", "John", CustomerType.REGULAR, new Date(), "john@email.com"),
-                new Customer("2", "9876510001", "Jenny", CustomerType.REGULAR, new Date(), "jenny@email.com"),
-                new Customer("3", "9876520000", "Tim", CustomerType.AFFILIATE, new Date(), "tim@email.com"),
-                new Customer("4", "9876520001", "Tom", CustomerType.AFFILIATE, new Date(), "tom@email.com"),
-                new Customer("5", "9876530000", "Alex", CustomerType.EMPLOYEE, new Date(), "alex@email.com"),
-                new Customer("6", "9876540001", "Alina", CustomerType.EMPLOYEE, new Date(), "alina@email.com")
+                new Customer("9876510000", "John", CustomerType.REGULAR, LocalDate.now(), "john@email.com"),
+                new Customer("9876510001", "Jenny", CustomerType.REGULAR, LocalDate.of(2013, 10, 9), "jenny@email.com"),
+                new Customer("9876520000", "Tim", CustomerType.AFFILIATE, LocalDate.now(), "tim@email.com"),
+                new Customer("9876520001", "Tom", CustomerType.AFFILIATE, LocalDate.of(2014, 11, 7), "tom@email.com"),
+                new Customer("9876530000", "Alex", CustomerType.EMPLOYEE, LocalDate.now(), "alex@email.com"),
+                new Customer("9876540001", "Alina", CustomerType.EMPLOYEE, LocalDate.of(2015, 3, 3), "alina@email.com")
         );
 
         for (Customer customer : customerList) {

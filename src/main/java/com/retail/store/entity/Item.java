@@ -1,6 +1,7 @@
 package com.retail.store.entity;
 
 import com.retail.store.util.ItemType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -18,7 +19,8 @@ public class Item {
 
     @Id
     @GeneratedValue
-    private int id;
+    @Schema(hidden = true)
+    private int itemId;
 
     @NotNull(message = "Item Name cannot be null or empty")
     private String name;

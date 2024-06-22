@@ -28,6 +28,12 @@ public class ItemService {
         throw new ItemException("Item not found with id: " + id);
     }
 
+    public List<Item> getAllItem() {
+        List<Item> allItem = (List<Item>) itemRepository.findAll();
+        log.info("All items: {}", allItem);
+        return allItem;
+    }
+
     public Item createItem(Item item) {
         item = itemRepository.save(item);
         log.info("Item created: {}", item);
@@ -36,13 +42,28 @@ public class ItemService {
 
     public Item updateItem(int id, Item item) {
         Item itemInDB = getItemById(id);
-        itemInDB.setName(item.getName());
-        itemInDB.setPrice(item.getPrice());
-        itemInDB.setDescription(item.getDescription());
-        itemInDB.setItemType(item.getItemType());
+        if (item.getName() != null && !item.getName().isEmpty()) {
+            itemInDB.setName(item.getName());
+        }
+        if (item.getPrice() != 0.0) {
+            itemInDB.setPrice(item.getPrice());
+        }
+        if (item.getDescription() != null && !item.getDescription().isEmpty()) {
+            itemInDB.setDescription(item.getDescription());
+        }
+        if (item.getItemType() != null) {
+            itemInDB.setItemType(item.getItemType());
+        }
         item = itemRepository.save(itemInDB);
         log.info("Item updated: {}", item);
         return item;
+    }
+
+    public String deleteItem(int id) {
+        getItemById(id);
+        itemRepository.deleteById(id);
+        log.info("Item deleted with id: {}", id);
+        return "Item deleted with id: " + id;
     }
 
     @PostConstruct
@@ -52,7 +73,7 @@ public class ItemService {
                 new Item(2, "TV", 30000.0, "Sony 4K UHD TV", ItemType.ELECTRONIC),
                 new Item(3, "Men T-Shirt", 500.0, "UCB Men Polo T-Shirt", ItemType.CLOTHING),
                 new Item(4, "Women T-Shirt", 400.0, "Mango Women T-Shirt", ItemType.CLOTHING),
-                new Item(5, "Potato", 100.0, "Fresh Potato", ItemType.GROCERY),
+                new Item(5, "Potato", 50.0, "Fresh Potato", ItemType.GROCERY),
                 new Item(6, "Cheese", 200.0, "Amul Cheese", ItemType.GROCERY),
                 new Item(7, "Think and Grow Rich", 300.0, "Think and Grow Rich", ItemType.BOOK),
                 new Item(8, "Harry Potter", 300.0, "Harry Potter", ItemType.BOOK),
@@ -63,5 +84,9 @@ public class ItemService {
         for (Item item : itemList) {
             createItem(item);
         }
+    }
+
+    public ItemType getItemTypeById(int itemId) {
+        return itemRepository.findItemTypeByItemId(itemId);
     }
 }
