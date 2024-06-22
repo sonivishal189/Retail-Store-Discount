@@ -73,6 +73,7 @@ public class BillService {
             bill.getLineItems().add(lineItem);
             bill.setBillAmount(bill.getBillAmount() + lineItem.getLinePrice());
         }
+        calculateDiscount(bill);
         bill.setNetPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
     }
 
@@ -148,7 +149,7 @@ public class BillService {
             }
         }
         bill.getLineItems().removeIf(lineItem -> lineItem.getItemId() == itemId);
-
+        calculateDiscount(bill);
         bill = billRepository.save(bill);
         log.info("Removed item from bill: {}", bill);
         return bill;
@@ -165,9 +166,8 @@ public class BillService {
         return "Bill deleted with id: " + billId;
     }
 
-    public double calculateDiscount(int billId) {
-        log.info("Discount calculation starts for billId: {}", billId);
-        Bill bill = getBillById(billId);
+    public void calculateDiscount(Bill bill) {
+        log.info("Discount calculation starts for billId: {}", bill.getBillId());
         Customer customer = customerService.getCustomerById(bill.getCustomerId());
 
         double discountPercentage = getCustomerTypeDiscountPercentage(customer);
@@ -187,6 +187,11 @@ public class BillService {
         bill.setDueAmount(bill.getNetPayableAmount());
         billRepository.save(bill);
         log.info("Net discount: {} calculated for billId: {}", bill.getNetDiscount(), bill.getBillId());
+    }
+
+    public double getBillDiscount(int billId) {
+        Bill bill = getBillById(billId);
+        log.info("Net discount is: {} for billId: {}", bill.getNetDiscount(), bill.getBillId());
         return bill.getNetDiscount();
     }
 }

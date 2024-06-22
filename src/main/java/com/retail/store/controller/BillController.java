@@ -63,9 +63,9 @@ public class BillController {
     }
 
     @PostMapping("/{billId}")
-    @Operation(summary = "Calculate Discount")
-    public double calculate(@PathVariable int billId) {
-        log.info("Calculate Discount for Bill Id: {}", billId);
-        return billService.calculateDiscount(billId);
+    @Operation(summary = "Get Bill Discount")
+    public double getBillDiscount(@PathVariable int billId) {
+        log.info("Get Discount for Bill Id: {}", billId);
+        return billService.getBillDiscount(billId);
     }
 }

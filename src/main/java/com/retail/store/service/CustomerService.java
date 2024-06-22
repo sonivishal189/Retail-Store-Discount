@@ -60,7 +60,7 @@ public class CustomerService {
         if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
             customerInDb.setEmail(customer.getEmail());
         }
-        if (null != customerInDb.getPhoneNumber() && !customerInDb.getPhoneNumber().equals(customer.getPhoneNumber())) {
+        if (null != customer.getPhoneNumber() && !customerInDb.getPhoneNumber().equals(customer.getPhoneNumber())) {
             log.error("Phone number cannot be changed");
             throw new CustomerException("Phone number cannot be changed");
         }
