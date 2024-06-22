@@ -1,16 +1,20 @@
 package com.retail.store.service;
 
 import com.retail.store.dao.BillRepository;
-import com.retail.store.exception.BillException;
 import com.retail.store.entity.Bill;
 import com.retail.store.entity.Customer;
 import com.retail.store.entity.Item;
+import com.retail.store.entity.LineItem;
+import com.retail.store.exception.BillException;
+import com.retail.store.model.BillItem;
 import com.retail.store.util.PaymentMode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -35,24 +39,33 @@ public class BillService {
         throw new BillException("Bill not found with id: " + id);
     }
 
-    public int createBill(int customerId) {
+    public Bill createBill(String customerId, List<BillItem> billItems) {
         Bill newBill = new Bill();
         Customer customer = customerService.getCustomerById(customerId);
-        newBill.setCustomer(customer);
-        newBill.setBillAmount(0.0);
-        newBill.setDiscount(0.0);
+        newBill.setCustomerId(customer.getId());
+        newBill.setCustomerName(customer.getName());
+        newBill.setLineItems(new ArrayList<>());
+        newBill.setPaymentMode(null);
         newBill.setBillDate(new Date());
+        for (BillItem billItem : billItems) {
+            addItem(billItem.getItemId(), billItem.getQuantity(), newBill, customer);
+        }
         int billId = billRepository.save(newBill).getId();
         log.info("Created bill with id: {}", billId);
-        return billId;
+        return newBill;
     }
 
-    public Bill addItemToBill(int billId, int itemId) {
-        Bill bill = getBillById(billId);
+    private void addItem(int itemId, int quantity, Bill bill, Customer customer) {
         Item item = itemService.getItemById(itemId);
-        bill.getItems().add(item);
-        bill.setBillAmount(bill.getBillAmount() + item.getPrice());
-        // TODO: Add discount based on condition given
+        bill.getLineItems().add(new LineItem(itemId, item.getName(), item.getPrice(), quantity, bill));
+        bill.setBillAmount(bill.getBillAmount() + (item.getPrice() * quantity));
+        populateDiscount(bill, customer);
+    }
+
+    public Bill addItemToBill(int billId, BillItem billItem) {
+        Bill bill = getBillById(billId);
+        Customer customer = customerService.getCustomerById(bill.getCustomerId());
+        addItem(billItem.getItemId(), billItem.getQuantity(), bill, customer);
         bill = billRepository.save(bill);
         log.info("Added item to bill: {}", bill);
         return bill;
@@ -64,5 +77,9 @@ public class BillService {
         bill = billRepository.save(bill);
         log.info("Paid bill: {}", bill);
         return bill;
+    }
+
+    private void populateDiscount(Bill bill, Customer customer) {
+        bill.setDiscount(0.0);
     }
 }

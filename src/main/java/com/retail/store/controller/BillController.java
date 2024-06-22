@@ -1,6 +1,8 @@
 package com.retail.store.controller;
 
 import com.retail.store.entity.Bill;
+import com.retail.store.model.BillItem;
+import com.retail.store.model.CreateBillRequest;
 import com.retail.store.service.BillService;
 import com.retail.store.util.PaymentMode;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +17,16 @@ public class BillController {
     @Autowired
     private BillService billService;
 
-    @PostMapping("/create/{customerId}")
-    public int createBill(@PathVariable int customerId) {
-        log.info("Create Bill for Customer: {}", customerId);
-        return billService.createBill(customerId);
+    @PostMapping("/create")
+    public Bill createBill(@RequestBody CreateBillRequest billRequest) {
+        log.info("Create Bill: {}", billRequest);
+        return billService.createBill(billRequest.getCustomerId(), billRequest.getItems());
     }
 
-    @PatchMapping("/addItem/{billId}/{itemId}")
-    public Bill addItemToBill(@PathVariable int billId, @PathVariable int itemId) {
-        log.info("Add Item: {} to Bill: {}", itemId, billId);
-        return billService.addItemToBill(billId, itemId);
+    @PatchMapping("/addItem/{billId}")
+    public Bill addItemToBill(@PathVariable int billId, @RequestBody BillItem billItem) {
+        log.info("Add Item: {} to Bill: {}", billItem, billId);
+        return billService.addItemToBill(billId, billItem);
     }
 
     @GetMapping("/{id}")

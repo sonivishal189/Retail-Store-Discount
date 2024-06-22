@@ -3,7 +3,7 @@ package com.retail.store.util;
 public enum CustomerType {
     EMPLOYEE("Employee"),
     AFFILIATE("Affiliate"),
-    CUSTOMER("Customer");
+    REGULAR("Regular");
 
     CustomerType(String employee) {
     }

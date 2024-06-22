@@ -1,10 +1,7 @@
 package com.retail.store.entity;
 
 import com.retail.store.util.PaymentMode;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -16,14 +13,17 @@ import java.util.List;
 public class Bill {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int id;
 
-    @NotNull(message = "Customer cannot be null")
-    private Customer customer;
+    @NotNull(message = "Customer Id cannot be null")
+    private String customerId;
 
-    @OneToMany
-    private List<Item> items;
+    private String customerName;
+
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull(message = "Line Item cannot be null")
+    private List<LineItem> LineItems;
 
     private double billAmount;
 
