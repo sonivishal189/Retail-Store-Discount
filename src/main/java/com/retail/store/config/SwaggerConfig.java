@@ -1,4 +1,4 @@
-package com.retail.store.util;
+package com.retail.store.config;
 
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;

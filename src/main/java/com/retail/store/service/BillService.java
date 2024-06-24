@@ -70,7 +70,9 @@ public class BillService {
             int quantity = billItem.getQuantity();
             Item item = itemService.getItemById(itemId);
             LineItem lineItem = new LineItem(itemId, item.getName(), item.getPrice(), quantity, bill);
-            bill.getLineItems().add(lineItem);
+            List<LineItem> lineItems = new ArrayList<>(bill.getLineItems());
+            lineItems.add(lineItem);
+            bill.setLineItems(lineItems);
             bill.setBillAmount(bill.getBillAmount() + lineItem.getLinePrice());
         }
         calculateDiscount(bill);
@@ -143,12 +145,15 @@ public class BillService {
             log.error("Item not found in bill: {}", billId);
             throw new BillException("Item not found in bill: " + billId);
         }
+        List<LineItem> lineItems = new ArrayList<>(bill.getLineItems());
         for (LineItem lineItem : bill.getLineItems()) {
             if (lineItem.getItemId() == itemId) {
                 bill.setBillAmount(bill.getBillAmount() - lineItem.getLinePrice());
+                lineItems.remove(lineItem);
             }
         }
-        bill.getLineItems().removeIf(lineItem -> lineItem.getItemId() == itemId);
+        bill.setLineItems(lineItems);
+//        bill.getLineItems().removeIf(lineItem -> lineItem.getItemId() == itemId);
         calculateDiscount(bill);
         bill = billRepository.save(bill);
         log.info("Removed item from bill: {}", bill);
@@ -158,8 +163,8 @@ public class BillService {
     public String deleteBill(int billId) {
         Bill bill = getBillById(billId);
         if (null != bill.getPaymentMode()) {
-            log.error("Bill: {} already paid cannot be delete", billId);
-            throw new BillException("Bill " + billId + " already paid cannot be delete");
+            log.error("Bill: {} already paid cannot be deleted", billId);
+            throw new BillException("Bill " + billId + " already paid cannot be deleted");
         }
         billRepository.delete(bill);
         log.info("Deleted bill: {}", bill);
@@ -185,7 +190,7 @@ public class BillService {
         bill.setNetDiscount(Double.parseDouble(String.format("%.2f", totalDiscount)));
         bill.setNetPayableAmount(bill.getBillAmount() - bill.getNetDiscount());
         bill.setDueAmount(bill.getNetPayableAmount());
-        billRepository.save(bill);
+//        billRepository.save(bill);
         log.info("Net discount: {} calculated for billId: {}", bill.getNetDiscount(), bill.getBillId());
     }
 

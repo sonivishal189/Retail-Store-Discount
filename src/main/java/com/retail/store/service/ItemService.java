@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -19,10 +20,10 @@ public class ItemService {
     private ItemRepository itemRepository;
 
     public Item getItemById(int id) {
-        if (itemRepository.findById(id).isPresent()) {
-            Item item = itemRepository.findById(id).get();
-            log.info("Item fetched by id: {}", item);
-            return item;
+        Optional<Item> item = itemRepository.findById(id);
+        if (item.isPresent()) {
+            log.info("Item fetched by id: {}", item.get());
+            return item.get();
         }
         log.error("Item not found with id: {}", id);
         throw new ItemException("Item not found with id: " + id);
@@ -67,7 +68,7 @@ public class ItemService {
     }
 
     @PostConstruct
-    private void init() {
+    public void init() {
         List<Item> itemList = List.of(
                 new Item(1, "Laptop", 60000.0, "HP Laptop", ItemType.ELECTRONIC),
                 new Item(2, "TV", 30000.0, "Sony 4K UHD TV", ItemType.ELECTRONIC),

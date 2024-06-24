@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -40,10 +41,10 @@ public class CustomerService {
     }
 
     public Customer getCustomerById(String id) {
-        if (customerRepository.findById(id).isPresent()) {
-            Customer customer = customerRepository.findById(id).get();
-            log.info("Customer fetched by id: {}", customer);
-            return customer;
+        Optional<Customer> customer = customerRepository.findById(id);
+        if (customer.isPresent()) {
+            log.info("Customer fetched by id: {}", customer.get());
+            return customer.get();
         }
         log.error("Customer not found with id: {}", id);
         throw new CustomerException("Customer not found with id: " + id);
@@ -81,7 +82,7 @@ public class CustomerService {
     }
 
     @PostConstruct
-    private void init() {
+    public void init() {
         List<Customer> customerList = List.of(
                 new Customer("9999991001", "John", CustomerType.REGULAR, LocalDate.now(), "john@email.com"),
                 new Customer("9999991002", "Jenny", CustomerType.REGULAR, LocalDate.of(2013, 10, 9), "jenny@email.com"),

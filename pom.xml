@@ -77,6 +77,17 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.8</version>
+				<configuration>
+					<excludes>
+						<exclude>com/retail/store/config/**/*</exclude>
+						<exclude>com/retail/store/controller/**/*</exclude>
+						<exclude>com/retail/store/dao/**/*</exclude>
+						<exclude>com/retail/store/entity/**/*</exclude>
+						<exclude>com/retail/store/exception/**/*</exclude>
+						<exclude>com/retail/store/model/**/*</exclude>
+						<exclude>com/retail/store/util/**/*</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
