@@ -49,4 +49,8 @@ The Retail Store Discount project is a Java Spring Boot application designed to 
 - Once application is running, open your browser and navigate to http://localhost:8080/swagger-ui/index.html to access the Swagger UI for API documentation and usage. 
 - Swagger UI can be used to perform CRUD operations on customers, items and bills.
 
+## Usage
+- Use GET /customer/all and GET /item/all endpoints to fetch all the pre added customers and items respectively.
+- Existing customer and item details can be used for creating bills.
+- User can create customer and item using the endpoints as well.
 
