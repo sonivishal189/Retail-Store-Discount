@@ -1,6 +1,7 @@
 package com.retail.store.controller;
 
 import com.retail.store.entity.Customer;
+import com.retail.store.model.ServiceResponse;
 import com.retail.store.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,36 +23,41 @@ public class CustomerController {
 
     @GetMapping("/all")
     @Operation(summary = "Get All Customer")
-    public List<Customer> getAllCustomers() {
+    public ServiceResponse<List<Customer>> getAllCustomers() {
         log.info("Get All Customers");
-        return customerService.getAllCustomers();
+        List<Customer> allCustomers = customerService.getAllCustomers();
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, allCustomers);
     }
 
     @PostMapping("/create")
     @Operation(summary = "Create new Customer")
-    public Customer createCustomer(@Valid @RequestBody Customer customer) {
+    public ServiceResponse<Customer> createCustomer(@Valid @RequestBody Customer customer) {
         log.info("Create Customer: {}", customer);
-        return customerService.createCustomer(customer);
+        Customer newCustomer = customerService.createCustomer(customer);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, newCustomer);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get Customer by Id")
-    public Customer getCustomerById(@PathVariable String id) {
+    public ServiceResponse<Customer> getCustomerById(@PathVariable String id) {
         log.info("Get Customer By Id: {}", id);
-        return customerService.getCustomerById(id);
+        Customer customerById = customerService.getCustomerById(id);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, customerById);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update Customer")
-    public Customer updateCustomer(@PathVariable String id, @RequestBody Customer customer) {
+    public ServiceResponse<Customer> updateCustomer(@PathVariable String id, @RequestBody Customer customer) {
         log.info("Update Customer id: {}, customer: {}", id, customer);
-        return customerService.updateCustomer(id, customer);
+        Customer updatedCustomer = customerService.updateCustomer(id, customer);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, updatedCustomer);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Customer by Id")
-    public String deleteCustomer(@PathVariable String id) {
+    public ServiceResponse<String> deleteCustomer(@PathVariable String id) {
         log.info("Delete Customer id: {}", id);
-        return customerService.deleteCustomer(id);
+        String deleteMessage = customerService.deleteCustomer(id);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, deleteMessage, null);
     }
 }

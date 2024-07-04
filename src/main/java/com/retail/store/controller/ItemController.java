@@ -1,6 +1,7 @@
 package com.retail.store.controller;
 
 import com.retail.store.entity.Item;
+import com.retail.store.model.ServiceResponse;
 import com.retail.store.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,36 +23,41 @@ public class ItemController {
 
     @PostMapping("/create")
     @Operation(summary = "Create new Item")
-    public Item createItem(@Valid @RequestBody Item item) {
+    public ServiceResponse<Item> createItem(@Valid @RequestBody Item item) {
         log.info("Create Item: {}", item);
-        return itemService.createItem(item);
+        Item newItem = itemService.createItem(item);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, newItem);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get Item by Id")
-    public Item getItemById(@PathVariable int id) {
+    public ServiceResponse<Item> getItemById(@PathVariable int id) {
         log.info("Get Item By Id: {}", id);
-        return itemService.getItemById(id);
+        Item itemById = itemService.getItemById(id);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, itemById);
     }
 
     @GetMapping("/all")
     @Operation(summary = "Get all Items")
-    public List<Item> getAllItem() {
+    public ServiceResponse<List<Item>> getAllItem() {
         log.info("Get All Item");
-        return itemService.getAllItem();
+        List<Item> allItem = itemService.getAllItem();
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, allItem);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update Item")
-    public Item updateItem(@PathVariable int id, @RequestBody Item item) {
+    public ServiceResponse<Item> updateItem(@PathVariable int id, @RequestBody Item item) {
         log.info("Update Item: {}", item);
-        return itemService.updateItem(id, item);
+        Item updatedItem = itemService.updateItem(id, item);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, null, updatedItem);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Item by Id")
-    public String deleteItem(@PathVariable int id) {
+    public ServiceResponse<String> deleteItem(@PathVariable int id) {
         log.info("Delete Item: {}", id);
-        return itemService.deleteItem(id);
+        String deleteMessage = itemService.deleteItem(id);
+        return new ServiceResponse<>(ServiceResponse.ServiceResponseStatus.SUCCESS, deleteMessage, null);
     }
 }
